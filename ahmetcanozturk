@@ -1,0 +1,116 @@
+
+class Library:
+
+
+    def __init__(self, filename="books.txt"):
+        try:
+            self.file = open(filename, "a+") #books.text olarak isimlendirdiğimiz dosyayı açar.
+        except FileNotFoundError:  #eğer dosya bulunamadı hatası üretirse
+            print(f"File '{filename}' bulunamadı. Yeni dosya oluşturuluyor...") 
+            self.file = open(filename, "w") 
+
+        self.filename = filename
+
+    def print_file_name(self):
+        print(self.filename)
+
+    def __del__(self):
+        self.file.close()  # Dosyanın kapatılmasını sağlar.
+
+    def list_books(self):
+
+        all_books = [] # boş bir liste oluşturduk.
+
+        for i in self.file:
+            book_data = i.split(",") #her bir metni , ile böler.
+            book_dict = {
+                "title": book_data[0],
+                "author": book_data[1],
+                "release_date": book_data[2],
+                "pages": book_data[3]
+            }
+            all_books.append(book_dict)
+
+        if all_books:  #burada herhangi bir şart yokmuş gibi gözüküyor ancak 
+                       #pythonda boş liste hep false, dolu liste true döndürür.
+            print("Books in the library:")
+            for book in all_books:
+                print(f"\t* {book['title']} by {book['author']}") #burada, \t ile bir üstte bastırılan ifadenin bir alt satıra geçmesine olanak sağlanır.
+        else:
+            print("There are currently no books in the library.")
+
+
+
+    def add_book(self):
+        while True:
+            title = input("Enter book title: ")
+            if not title: #liste boşsa şart sağlanır. (not olmasaydı ve liste boş olsaydı false döndürcekti ancak not oldugu için true döndürür.)
+                print("Title cannot be empty. Please try again.")
+                continue
+            break
+
+        while True:
+            author = input("Enter book author: ")
+            if not author:
+                print("Author cannot be empty. Please try again.")
+                continue
+            break
+
+        while True:
+            try:
+                release_year = int(input("Enter release year (YYYY): "))
+                if release_year <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Invalid release year. Please enter a positive integer.")
+
+        while True:
+            try:
+                pages = int(input("Enter number of pages: "))
+                if pages <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Invalid number of pages. Please enter a positive integer.")
+
+        book_data = f"{title},{author},{release_year},{pages}"
+        self.file.write(book_data + "\n")
+        self.file.seek(0)  # Reposition the file pointer to the beginning
+        print(f"Book '{title}' added successfully!")
+
+        self.save_books_to_file()  # Save updated book list to file
+
+
+    def remove_book(self):
+        title = input("Enter book title to remove: ")
+
+        all_books = []
+        for i in self.file:
+            book_data = i.split(",")
+            if book_data[0] != title:
+                all_books.append(book_data)
+
+        with open("books.txt", "w") as f:
+            for i in all_books:
+                f.write(",".join(i) + "\n")
+
+        print(f"Book '{title}' removed (if it existed).")
+
+        self.save_books_to_file()  # Save updated book list to file
+
+    def save_books_to_file(self):
+        with open(self.filename, "w") as file:  # Close and reopen in write mode
+            for book in self.file:
+                file.write(f"{book['title']},{book['author']},{book['release_date']},{book['pages']}\n")
+        self.file.close()  # Close the original file
+        self.file = open(self.filename, "a+")  # Reopen in append mode
+
+
+
+
+library = Library()
+library.print_file_name()  # oluşan dosya ismini yazırmaya yarar.
+library.list_books()
+library.add_book()
+library.list_books()
